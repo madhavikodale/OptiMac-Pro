@@ -3,6 +3,13 @@
 use serde::{Deserialize, Serialize};
 use sysinfo::{System, Disks};
 use std::sync::Mutex;
+use chrono::Utc;
+
+mod system_intelligence;
+mod ai_analysis;
+
+use system_intelligence::{SystemIntelligence, SystemMetrics, SystemAnalysis};
+use ai_analysis::{AIAnalyzer, AIInsight};
 
 #[derive(Serialize, Deserialize, Clone)]
 struct SystemStats {
@@ -30,10 +37,11 @@ struct ProcessInfo {
 
 struct AppState {
     sys: Mutex<System>,
+    intelligence: Mutex<SystemIntelligence>,
+    ai_analyzer: Mutex<AIAnalyzer>,
 }
 
 fn get_battery_percentage() -> f32 {
-    // Try to get battery info from macOS
     #[cfg(target_os = "macos")]
     {
         if let Ok(output) = std::process::Command::new("pmset")
@@ -55,7 +63,7 @@ fn get_battery_percentage() -> f32 {
             }
         }
     }
-    50.0 // Fallback
+    50.0
 }
 
 #[tauri::command]
@@ -120,15 +128,112 @@ fn get_top_processes(state: tauri::State<AppState>, limit: usize) -> Result<Vec<
     Ok(processes)
 }
 
+#[tauri::command]
+fn analyze_system(state: tauri::State<AppState>) -> Result<SystemAnalysis, String> {
+    let mut sys = state.sys.lock().unwrap();
+    sys.refresh_all();
+
+    let cpu_usage = sys.global_cpu_info().cpu_usage();
+    let memory_total = sys.total_memory();
+    let memory_used = sys.used_memory();
+    let memory_usage = (memory_used as f32 / memory_total as f32) * 100.0;
+
+    let disks = Disks::new_with_refreshed_list();
+    let mut disk_total = 0u64;
+    let mut disk_used = 0u64;
+    
+    for disk in &disks {
+        disk_total += disk.total_space();
+        disk_used += disk.total_space() - disk.available_space();
+    }
+    
+    let disk_usage = if disk_total > 0 {
+        (disk_used as f32 / disk_total as f32) * 100.0
+    } else {
+        0.0
+    };
+
+    let metrics = SystemMetrics {
+        cpu_usage,
+        memory_usage,
+        disk_usage,
+        temperature: 52.0,
+        battery_health: get_battery_percentage(),
+        network_up: 8.4,
+        network_down: 32.6,
+        timestamp: Utc::now(),
+    };
+
+    let mut intelligence = state.intelligence.lock().unwrap();
+    let analysis = intelligence.analyze(metrics);
+
+    Ok(analysis)
+}
+
+#[tauri::command]
+fn get_ai_insights(state: tauri::State<AppState>) -> Result<Vec<AIInsight>, String> {
+    let mut sys = state.sys.lock().unwrap();
+    sys.refresh_all();
+
+    let cpu_usage = sys.global_cpu_info().cpu_usage();
+    let memory_total = sys.total_memory();
+    let memory_used = sys.used_memory();
+    let memory_usage = (memory_used as f32 / memory_total as f32) * 100.0;
+
+    let disks = Disks::new_with_refreshed_list();
+    let mut disk_total = 0u64;
+    let mut disk_used = 0u64;
+    
+    for disk in &disks {
+        disk_total += disk.total_space();
+        disk_used += disk.total_space() - disk.available_space();
+    }
+    
+    let disk_usage = if disk_total > 0 {
+        (disk_used as f32 / disk_total as f32) * 100.0
+    } else {
+        0.0
+    };
+
+    let metrics = SystemMetrics {
+        cpu_usage,
+        memory_usage,
+        disk_usage,
+        temperature: 52.0,
+        battery_health: get_battery_percentage(),
+        network_up: 8.4,
+        network_down: 32.6,
+        timestamp: Utc::now(),
+    };
+
+    let mut intelligence = state.intelligence.lock().unwrap();
+    let analysis = intelligence.analyze(metrics);
+
+    let ai_analyzer = state.ai_analyzer.lock().unwrap();
+    let insights = ai_analyzer.generate_insights(&analysis);
+
+    Ok(insights)
+}
+
 fn main() {
     let sys = System::new_all();
+    let intelligence = SystemIntelligence::new();
+    let ai_analyzer = AIAnalyzer::new();
+
     let app_state = AppState {
         sys: Mutex::new(sys),
+        intelligence: Mutex::new(intelligence),
+        ai_analyzer: Mutex::new(ai_analyzer),
     };
 
     tauri::Builder::default()
         .manage(app_state)
-        .invoke_handler(tauri::generate_handler![get_system_stats, get_top_processes])
+        .invoke_handler(tauri::generate_handler![
+            get_system_stats,
+            get_top_processes,
+            analyze_system,
+            get_ai_insights
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

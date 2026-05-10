@@ -2,11 +2,13 @@ import { useState } from 'react'
 import { FiMenu, FiSearch, FiBell, FiSun, FiMoon } from 'react-icons/fi'
 import Dashboard from './components/Dashboard'
 import Sidebar from './components/Sidebar'
+import AIIntelligence from './components/AIIntelligence'
 import './App.css'
 
 function App() {
   const [uiMode, setUiMode] = useState('premium')
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [activeTab, setActiveTab] = useState('dashboard')
 
   const toggleUIMode = () => {
     setUiMode(uiMode === 'premium' ? 'simple' : 'premium')
@@ -14,7 +16,7 @@ function App() {
 
   return (
     <div className={`flex h-screen ${uiMode === 'premium' ? 'bg-dark-950' : 'bg-gray-50'} transition-all duration-500`}>
-      <Sidebar isOpen={sidebarOpen} uiMode={uiMode} />
+      <Sidebar isOpen={sidebarOpen} uiMode={uiMode} onTabChange={setActiveTab} activeTab={activeTab} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Navigation - No white border */}
@@ -67,7 +69,13 @@ function App() {
         </nav>
 
         <div className="flex-1 overflow-auto">
-          <Dashboard uiMode={uiMode} />
+          {activeTab === 'dashboard' ? (
+            <Dashboard uiMode={uiMode} />
+          ) : activeTab === 'ai-intelligence' ? (
+            <AIIntelligence />
+          ) : (
+            <Dashboard uiMode={uiMode} />
+          )}
         </div>
       </div>
     </div>

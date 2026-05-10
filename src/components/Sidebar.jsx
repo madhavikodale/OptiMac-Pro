@@ -1,15 +1,16 @@
-import { FiHome, FiActivity, FiSettings, FiZap, FiTrash2, FiCpu, FiWifi, FiHardDrive } from 'react-icons/fi'
+import { FiHome, FiActivity, FiSettings, FiZap, FiTrash2, FiCpu, FiWifi, FiHardDrive, FiBrain } from 'react-icons/fi'
 
-function Sidebar({ isOpen, uiMode }) {
+function Sidebar({ isOpen, uiMode, onTabChange, activeTab }) {
   const menuItems = [
-    { icon: FiHome, label: 'Dashboard', category: 'SYSTEM' },
-    { icon: FiActivity, label: 'Performance', category: 'SYSTEM' },
-    { icon: FiCpu, label: 'Processes', category: 'SYSTEM' },
-    { icon: FiSettings, label: 'Startup Items', category: 'SYSTEM' },
-    { icon: FiWifi, label: 'Services', category: 'SYSTEM' },
-    { icon: FiZap, label: 'One Click Optimize', category: 'OPTIMIZATION' },
-    { icon: FiTrash2, label: 'Junk Cleaner', category: 'OPTIMIZATION' },
-    { icon: FiHardDrive, label: 'Disk Optimizer', category: 'OPTIMIZATION' },
+    { id: 'dashboard', icon: FiHome, label: 'Dashboard', category: 'SYSTEM' },
+    { id: 'ai-intelligence', icon: FiBrain, label: 'AI Intelligence', category: 'SYSTEM' },
+    { id: 'performance', icon: FiActivity, label: 'Performance', category: 'SYSTEM' },
+    { id: 'processes', icon: FiCpu, label: 'Processes', category: 'SYSTEM' },
+    { id: 'startup', icon: FiSettings, label: 'Startup Items', category: 'SYSTEM' },
+    { id: 'services', icon: FiWifi, label: 'Services', category: 'SYSTEM' },
+    { id: 'optimize', icon: FiZap, label: 'One Click Optimize', category: 'OPTIMIZATION' },
+    { id: 'cleaner', icon: FiTrash2, label: 'Junk Cleaner', category: 'OPTIMIZATION' },
+    { id: 'disk', icon: FiHardDrive, label: 'Disk Optimizer', category: 'OPTIMIZATION' },
   ]
 
   return (
@@ -27,7 +28,7 @@ function Sidebar({ isOpen, uiMode }) {
 
         {/* Menu Items */}
         <nav className="space-y-6 flex-1">
-          {['SYSTEM', 'OPTIMIZATION', 'TOOLS', 'SETTINGS'].map((category) => (
+          {['SYSTEM', 'OPTIMIZATION'].map((category) => (
             <div key={category}>
               <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
                 {category}
@@ -35,13 +36,20 @@ function Sidebar({ isOpen, uiMode }) {
               <ul className="space-y-2">
                 {menuItems.filter(item => item.category === category).map((item) => {
                   const Icon = item.icon
+                  const isActive = activeTab === item.id
                   return (
-                    <li key={item.label}>
-                      <button className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition ${
-                        uiMode === 'premium'
-                          ? 'hover:bg-purple-500/10 hover:text-cyan-400'
-                          : 'hover:bg-dark-800 hover:text-blue-400'
-                      }`}>
+                    <li key={item.id}>
+                      <button 
+                        onClick={() => onTabChange(item.id)}
+                        className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition ${
+                          isActive
+                            ? uiMode === 'premium'
+                              ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-cyan-400 border-l-2 border-cyan-500'
+                              : 'bg-blue-500/20 text-blue-400 border-l-2 border-blue-500'
+                            : uiMode === 'premium'
+                            ? 'hover:bg-purple-500/10 hover:text-cyan-400'
+                            : 'hover:bg-dark-800 hover:text-blue-400'
+                        }`}>
                         <Icon size={18} />
                         <span className="text-sm">{item.label}</span>
                       </button>

@@ -1,3 +1,6 @@
+pub mod system_intelligence;
+pub mod ai_analysis;
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
   tauri::Builder::default()
