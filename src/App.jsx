@@ -271,8 +271,34 @@ const ProcessesPage = ({ topProcesses }) => (
   </>
 )
 
-const StartupPage = () => <><h1 className="text-4xl font-bold text-white">Startup Items</h1><p className="text-gray-400 mt-4">Coming soon...</p></>
-const ServicesPage = () => <><h1 className="text-4xl font-bold text-white">Services</h1><p className="text-gray-400 mt-4">Coming soon...</p></>
+const StartupPage = () => <>
+<h1 className="text-4xl font-bold text-white mb-8">Startup Items</h1>
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div className="bg-purple-900/30 border border-purple-500/20 rounded-lg p-6">
+<h3 className="text-white font-semibold text-lg">Spotify</h3>
+<p className="text-gray-400 mt-2">Launch Impact: Medium</p>
+<button className="mt-4 px-4 py-2 bg-red-500/20 text-red-300 rounded-lg">Disable</button>
+</div>
+<div className="bg-cyan-900/30 border border-cyan-500/20 rounded-lg p-6">
+<h3 className="text-white font-semibold text-lg">Discord</h3>
+<p className="text-gray-400 mt-2">Launch Impact: High</p>
+<button className="mt-4 px-4 py-2 bg-red-500/20 text-red-300 rounded-lg">Disable</button>
+</div>
+</div>
+</>
+const ServicesPage = () => <>
+<h1 className="text-4xl font-bold text-white mb-8">Services</h1>
+<div className="space-y-4">
+<div className="bg-dark-800/50 border border-green-500/20 rounded-lg p-5 flex items-center justify-between">
+<div><h3 className="text-white font-semibold">Network Monitor Service</h3><p className="text-gray-400 text-sm mt-1">Running normally</p></div>
+<span className="px-3 py-1 bg-green-500/20 text-green-300 rounded-full text-sm">Active</span>
+</div>
+<div className="bg-dark-800/50 border border-yellow-500/20 rounded-lg p-5 flex items-center justify-between">
+<div><h3 className="text-white font-semibold">Optimization Scheduler</h3><p className="text-gray-400 text-sm mt-1">Background maintenance enabled</p></div>
+<span className="px-3 py-1 bg-yellow-500/20 text-yellow-300 rounded-full text-sm">Idle</span>
+</div>
+</div>
+</>
 const OneClickOptimizePage = ({ analysis }) => <><h1 className="text-4xl font-bold text-white">One Click Optimize</h1><button className="mt-6 px-8 py-4 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-lg hover:shadow-lg text-lg font-semibold">⚡ Optimize Now</button>{analysis && <div className="mt-8"><SuggestionsCard suggestions={analysis.suggestions} /></div>}</>
 const JunkCleanerPage = () => <><h1 className="text-4xl font-bold text-white">Junk Cleaner</h1><p className="text-gray-400 mt-4">Coming soon...</p></>
 const DiskOptimizerPage = ({ systemStats }) => <><h1 className="text-4xl font-bold text-white">Disk Optimizer</h1>{systemStats && <div className="mt-6 bg-orange-900/30 border border-orange-500/20 rounded-lg p-6"><h3 className="text-white font-semibold mb-4">Disk: {systemStats.disk_usage.toFixed(1)}%</h3><div className="w-full bg-orange-500/20 rounded h-4"><div className="h-full bg-orange-500" style={{width: `${systemStats.disk_usage}%`}} /></div></div>}</>
