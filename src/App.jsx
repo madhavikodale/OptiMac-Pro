@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { invoke } from '@tauri-apps/api/core'
-import { FiMenu, FiSearch, FiBell, FiSun, FiMoon, FiHome, FiActivity, FiCpu, FiSettings, FiWifi, FiZap, FiTrash2, FiHardDrive, FiAlertCircle, FiTrendingUp, FiShield, FiRefreshCw, FiCheckCircle, FiAlertTriangle } from 'react-icons/fi'
+import { FiMenu, FiSearch, FiBell, FiSun, FiMoon, FiHome, FiActivity, FiCpu, FiSettings, FiWifi, FiZap, FiTrash2, FiHardDrive, FiShield, FiAlertCircle, FiTrendingUp, FiRefreshCw, FiCheckCircle, FiAlertTriangle } from 'react-icons/fi'
 import './App.css'
 
 function App() {
@@ -54,8 +54,9 @@ function App() {
     }
   }
 
-  const renderPage = () => {
-    if (activeTab === 'dashboard') return <DashboardPage systemStats={systemStats} analysis={analysis} />
+  // RENDER DYNAMIC CONTENT BASED ON ACTIVE TAB
+  const renderDynamicContent = () => {
+    if (activeTab === 'dashboard') return null // Dashboard is permanent
     if (activeTab === 'ai-intelligence') return <AIIntelligencePage analysis={analysis} insights={insights} loading={loading} onRefresh={fetchAllData} />
     if (activeTab === 'performance') return <PerformancePage systemStats={systemStats} analysis={analysis} />
     if (activeTab === 'processes') return <ProcessesPage topProcesses={topProcesses} />
@@ -64,11 +65,15 @@ function App() {
     if (activeTab === 'optimize') return <OneClickOptimizePage analysis={analysis} />
     if (activeTab === 'cleaner') return <JunkCleanerPage />
     if (activeTab === 'disk') return <DiskOptimizerPage systemStats={systemStats} />
-    return <DashboardPage systemStats={systemStats} analysis={analysis} />
+    return null
   }
+
+  const showDashboard = activeTab === 'dashboard'
+  const dynamicContent = renderDynamicContent()
 
   return (
     <div className={`flex h-screen ${uiMode === 'premium' ? 'bg-dark-950' : 'bg-gray-50'}`}>
+      {/* ===== PERSISTENT SIDEBAR ===== */}
       <aside className={`transition-all duration-500 ${sidebarOpen ? 'w-64' : 'w-0'} overflow-hidden ${uiMode === 'premium' ? 'glass border-r border-purple-500/20' : 'bg-gray-900 border-r border-gray-700'}`}>
         <div className="p-6 h-screen flex flex-col overflow-y-auto">
           <div className="mb-8 flex items-center gap-2">
@@ -122,7 +127,10 @@ function App() {
           </div>
         </div>
       </aside>
+
+      {/* ===== MAIN CONTENT AREA ===== */}
       <div className="flex-1 flex flex-col overflow-hidden">
+        {/* TOP NAV */}
         <nav className={`transition-all duration-500 ${uiMode === 'premium' ? 'glass border-b border-purple-500/20' : 'bg-gray-100 border-b border-gray-200'}`}>
           <div className="px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -145,25 +153,65 @@ function App() {
             </div>
           </div>
         </nav>
+
+        {/* ===== CONTENT AREA ===== */}
         <div className="flex-1 overflow-auto">
-          {renderPage()}
+          {/* DASHBOARD IS ALWAYS SHOWN (PERMANENT SHELL) */}
+          {showDashboard ? (
+            <DashboardShell systemStats={systemStats} analysis={analysis} />
+          ) : (
+            // DYNAMIC CONTENT OVERLAYS ON TOP
+            <div className="p-8 space-y-8 bg-gradient-to-br from-dark-950 via-dark-900 to-dark-950 h-full overflow-auto">
+              {dynamicContent}
+            </div>
+          )}
         </div>
       </div>
     </div>
   )
 }
 
-const DashboardPage = ({ systemStats, analysis }) => (
-  <div className="p-8 space-y-8 bg-gradient-to-br from-dark-950 via-dark-900 to-dark-950 h-full">
-    <h1 className="text-4xl font-bold text-white">Welcome back, User 👋</h1>
-    {systemStats && <div className="grid grid-cols-3 gap-6"><MetricCard label="CPU" value={`${systemStats.cpu_usage.toFixed(1)}%`} /><MetricCard label="Memory" value={`${systemStats.memory_usage.toFixed(1)}%`} /><MetricCard label="Disk" value={`${systemStats.disk_usage.toFixed(1)}%`} /></div>}
-    {analysis && <div className="grid grid-cols-2 gap-6"><AnomaliesCard anomalies={analysis.anomalies} /><SuggestionsCard suggestions={analysis.suggestions} /></div>}
+// ===== PERMANENT DASHBOARD SHELL =====
+const DashboardShell = ({ systemStats, analysis }) => (
+  <div className="p-8 space-y-8 bg-gradient-to-br from-dark-950 via-dark-900 to-dark-950 h-full overflow-auto">
+    <div>
+      <h1 className="text-4xl font-bold text-white">Welcome back, User 👋</h1>
+      <p className="text-gray-400">Your Mac is in {analysis ? (analysis.overall_health >= 80 ? 'Excellent' : analysis.overall_health >= 60 ? 'Good' : 'Fair') : 'Good'} Health</p>
+    </div>
+
+    {systemStats && (
+      <div className="grid grid-cols-3 gap-6">
+        <MetricCard label="CPU" value={`${systemStats.cpu_usage.toFixed(1)}%`} />
+        <MetricCard label="Memory" value={`${systemStats.memory_usage.toFixed(1)}%`} />
+        <MetricCard label="Disk" value={`${systemStats.disk_usage.toFixed(1)}%`} />
+        <MetricCard label="Battery" value={`${systemStats.battery_health.toFixed(0)}%`} />
+        <MetricCard label="Temp" value={`${systemStats.temperature.toFixed(0)}°C`} />
+        <MetricCard label="Network" value={`${systemStats.network_down.toFixed(1)}Mbps`} />
+      </div>
+    )}
+
+    {analysis && (
+      <div className="grid grid-cols-2 gap-6">
+        <AnomaliesCard anomalies={analysis.anomalies} />
+        <SuggestionsCard suggestions={analysis.suggestions} />
+      </div>
+    )}
   </div>
 )
 
+// ===== DYNAMIC PAGES =====
 const AIIntelligencePage = ({ analysis, insights, loading, onRefresh }) => (
-  <div className="p-8 space-y-8 bg-gradient-to-br from-dark-950 via-dark-900 to-dark-950 h-full overflow-auto">
-    <div className="flex justify-between"><h1 className="text-4xl font-bold text-white">AI System Intelligence</h1><button onClick={onRefresh} disabled={loading} className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-lg hover:shadow-lg disabled:opacity-50"><FiRefreshCw size={18} className={loading ? 'animate-spin' : ''} />{loading ? 'Analyzing' : 'Refresh'}</button></div>
+  <>
+    <div className="flex justify-between items-center mb-8">
+      <div>
+        <h1 className="text-4xl font-bold text-white">AI System Intelligence</h1>
+        <p className="text-gray-400">Real-time AI analysis with anomaly detection</p>
+      </div>
+      <button onClick={onRefresh} disabled={loading} className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-lg hover:shadow-lg disabled:opacity-50">
+        <FiRefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+        {loading ? 'Analyzing' : 'Refresh'}
+      </button>
+    </div>
     {analysis && (
       <>
         <div className="grid grid-cols-3 gap-6">
@@ -190,11 +238,11 @@ const AIIntelligencePage = ({ analysis, insights, loading, onRefresh }) => (
         {analysis.suggestions?.length > 0 && <SuggestionsCard suggestions={analysis.suggestions} />}
       </>
     )}
-  </div>
+  </>
 )
 
 const PerformancePage = ({ systemStats }) => (
-  <div className="p-8 bg-gradient-to-br from-dark-950 via-dark-900 to-dark-950 h-full">
+  <>
     <h1 className="text-4xl font-bold text-white mb-8">Performance</h1>
     {systemStats && (
       <div className="grid grid-cols-2 gap-6">
@@ -208,11 +256,11 @@ const PerformancePage = ({ systemStats }) => (
         </div>
       </div>
     )}
-  </div>
+  </>
 )
 
 const ProcessesPage = ({ topProcesses }) => (
-  <div className="p-8 bg-gradient-to-br from-dark-950 via-dark-900 to-dark-950 h-full">
+  <>
     <h1 className="text-4xl font-bold text-white mb-8">Top Processes</h1>
     <div className="bg-dark-800/50 border border-purple-500/20 rounded-lg overflow-hidden">
       <table className="w-full text-left text-sm">
@@ -220,15 +268,16 @@ const ProcessesPage = ({ topProcesses }) => (
         <tbody>{topProcesses.map(p => (<tr key={p.pid} className="border-t border-purple-500/10"><td className="px-6 py-3 text-white">{p.name}</td><td className="px-6 py-3 text-cyan-400">{p.cpu_usage.toFixed(1)}%</td><td className="px-6 py-3 text-gray-400">{(p.memory / 1024 / 1024).toFixed(0)} MB</td></tr>))}</tbody>
       </table>
     </div>
-  </div>
+  </>
 )
 
-const StartupPage = () => <div className="p-8 bg-gradient-to-br from-dark-950 via-dark-900 to-dark-950 h-full"><h1 className="text-4xl font-bold text-white">Startup Items</h1><p className="text-gray-400 mt-4">Coming soon...</p></div>
-const ServicesPage = () => <div className="p-8 bg-gradient-to-br from-dark-950 via-dark-900 to-dark-950 h-full"><h1 className="text-4xl font-bold text-white">Services</h1><p className="text-gray-400 mt-4">Coming soon...</p></div>
-const OneClickOptimizePage = ({ analysis }) => <div className="p-8 bg-gradient-to-br from-dark-950 via-dark-900 to-dark-950 h-full"><h1 className="text-4xl font-bold text-white">One Click Optimize</h1><button className="mt-6 px-8 py-4 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-lg hover:shadow-lg text-lg font-semibold">⚡ Optimize Now</button>{analysis && <div className="mt-8"><SuggestionsCard suggestions={analysis.suggestions} /></div>}</div>
-const JunkCleanerPage = () => <div className="p-8 bg-gradient-to-br from-dark-950 via-dark-900 to-dark-950 h-full"><h1 className="text-4xl font-bold text-white">Junk Cleaner</h1><p className="text-gray-400 mt-4">Coming soon...</p></div>
-const DiskOptimizerPage = ({ systemStats }) => <div className="p-8 bg-gradient-to-br from-dark-950 via-dark-900 to-dark-950 h-full"><h1 className="text-4xl font-bold text-white">Disk Optimizer</h1>{systemStats && <div className="mt-6 bg-orange-900/30 border border-orange-500/20 rounded-lg p-6"><h3 className="text-white font-semibold mb-4">Disk: {systemStats.disk_usage.toFixed(1)}%</h3><div className="w-full bg-orange-500/20 rounded h-4"><div className="h-full bg-orange-500" style={{width: `${systemStats.disk_usage}%`}} /></div></div>}</div>
+const StartupPage = () => <><h1 className="text-4xl font-bold text-white">Startup Items</h1><p className="text-gray-400 mt-4">Coming soon...</p></>
+const ServicesPage = () => <><h1 className="text-4xl font-bold text-white">Services</h1><p className="text-gray-400 mt-4">Coming soon...</p></>
+const OneClickOptimizePage = ({ analysis }) => <><h1 className="text-4xl font-bold text-white">One Click Optimize</h1><button className="mt-6 px-8 py-4 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-lg hover:shadow-lg text-lg font-semibold">⚡ Optimize Now</button>{analysis && <div className="mt-8"><SuggestionsCard suggestions={analysis.suggestions} /></div>}</>
+const JunkCleanerPage = () => <><h1 className="text-4xl font-bold text-white">Junk Cleaner</h1><p className="text-gray-400 mt-4">Coming soon...</p></>
+const DiskOptimizerPage = ({ systemStats }) => <><h1 className="text-4xl font-bold text-white">Disk Optimizer</h1>{systemStats && <div className="mt-6 bg-orange-900/30 border border-orange-500/20 rounded-lg p-6"><h3 className="text-white font-semibold mb-4">Disk: {systemStats.disk_usage.toFixed(1)}%</h3><div className="w-full bg-orange-500/20 rounded h-4"><div className="h-full bg-orange-500" style={{width: `${systemStats.disk_usage}%`}} /></div></div>}</>
 
+// ===== COMPONENTS =====
 const MetricCard = ({ label, value }) => <div className="bg-cyan-500/20 border border-cyan-500/30 rounded-lg p-6"><div className="text-gray-400 text-sm mb-2">{label}</div><div className="text-3xl font-bold text-white">{value}</div></div>
 
 const AnomaliesCard = ({ anomalies }) => (
