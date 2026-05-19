@@ -1,0 +1,14 @@
+/Users/digitone/OptiMac-Pro-Fresh/optimac-pro/src-tauri/target/release/deps/thiserror-541e6e9434c904e5.d: /Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/lib.rs /Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/aserror.rs /Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/display.rs /Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/var.rs /Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/private.rs /Users/digitone/OptiMac-Pro-Fresh/optimac-pro/src-tauri/target/release/build/thiserror-13c7eeae94b3b893/out/private.rs
+
+/Users/digitone/OptiMac-Pro-Fresh/optimac-pro/src-tauri/target/release/deps/libthiserror-541e6e9434c904e5.rlib: /Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/lib.rs /Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/aserror.rs /Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/display.rs /Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/var.rs /Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/private.rs /Users/digitone/OptiMac-Pro-Fresh/optimac-pro/src-tauri/target/release/build/thiserror-13c7eeae94b3b893/out/private.rs
+
+/Users/digitone/OptiMac-Pro-Fresh/optimac-pro/src-tauri/target/release/deps/libthiserror-541e6e9434c904e5.rmeta: /Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/lib.rs /Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/aserror.rs /Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/display.rs /Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/var.rs /Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/private.rs /Users/digitone/OptiMac-Pro-Fresh/optimac-pro/src-tauri/target/release/build/thiserror-13c7eeae94b3b893/out/private.rs
+
+/Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/lib.rs:
+/Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/aserror.rs:
+/Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/display.rs:
+/Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/var.rs:
+/Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-2.0.18/src/private.rs:
+/Users/digitone/OptiMac-Pro-Fresh/optimac-pro/src-tauri/target/release/build/thiserror-13c7eeae94b3b893/out/private.rs:
+
+# env-dep:OUT_DIR=/Users/digitone/OptiMac-Pro-Fresh/optimac-pro/src-tauri/target/release/build/thiserror-13c7eeae94b3b893/out

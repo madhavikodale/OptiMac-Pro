@@ -1,0 +1,29 @@
+{
+  "productName": "OptiMac Pro",
+  "version": "1.0.0",
+  "identifier": "com.optimacpro.app",
+  "build": {
+    "beforeBuildCommand": "npm run build",
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:5173",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "OptiMac Pro",
+        "width": 1400,
+        "height": 900,
+        "minWidth": 1200,
+        "minHeight": 800
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["app", "dmg"]
+  }
+}

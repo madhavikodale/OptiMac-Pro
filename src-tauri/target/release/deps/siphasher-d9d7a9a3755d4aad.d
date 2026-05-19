@@ -1,0 +1,11 @@
+/Users/digitone/OptiMac-Pro-Fresh/optimac-pro/src-tauri/target/release/deps/siphasher-d9d7a9a3755d4aad.d: /Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/siphasher-1.0.3/src/lib.rs /Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/siphasher-1.0.3/src/common.rs /Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/siphasher-1.0.3/src/sip.rs /Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/siphasher-1.0.3/src/sip128.rs /Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/siphasher-1.0.3/src/../README.md
+
+/Users/digitone/OptiMac-Pro-Fresh/optimac-pro/src-tauri/target/release/deps/libsiphasher-d9d7a9a3755d4aad.rlib: /Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/siphasher-1.0.3/src/lib.rs /Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/siphasher-1.0.3/src/common.rs /Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/siphasher-1.0.3/src/sip.rs /Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/siphasher-1.0.3/src/sip128.rs /Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/siphasher-1.0.3/src/../README.md
+
+/Users/digitone/OptiMac-Pro-Fresh/optimac-pro/src-tauri/target/release/deps/libsiphasher-d9d7a9a3755d4aad.rmeta: /Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/siphasher-1.0.3/src/lib.rs /Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/siphasher-1.0.3/src/common.rs /Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/siphasher-1.0.3/src/sip.rs /Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/siphasher-1.0.3/src/sip128.rs /Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/siphasher-1.0.3/src/../README.md
+
+/Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/siphasher-1.0.3/src/lib.rs:
+/Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/siphasher-1.0.3/src/common.rs:
+/Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/siphasher-1.0.3/src/sip.rs:
+/Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/siphasher-1.0.3/src/sip128.rs:
+/Users/digitone/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/siphasher-1.0.3/src/../README.md:
