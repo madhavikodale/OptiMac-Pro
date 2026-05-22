@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Layers, Search, X, Info } from 'lucide-react'
+import { useTheme } from '../contexts/ThemeContext'
 
 interface Process {
   id: string
@@ -22,6 +23,7 @@ const mockProcesses: Process[] = [
 ]
 
 export const Processes: React.FC = () => {
+  const { isDark } = useTheme()
   const [processes, setProcesses] = useState<Process[]>(mockProcesses)
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState<'cpu' | 'memory' | 'gpu'>('cpu')
@@ -54,28 +56,28 @@ export const Processes: React.FC = () => {
   const totalMemory = processes.reduce((sum, p) => sum + p.memory, 0)
 
   return (
-    <div className="min-h-full p-6 md:p-8 bg-neutral-950">
+    <div className={`min-h-full p-6 md:p-8 transition-colors duration-300 ${isDark ? 'bg-neutral-950' : 'bg-neutral-100'}`}>
       {/* HEADER */}
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-neutral-50 mb-2 flex items-center gap-3">
+        <h1 className={`text-4xl font-bold mb-2 flex items-center gap-3 ${isDark ? 'text-neutral-50' : 'text-neutral-900'}`}>
           <Layers className="text-cyan-400" size={32} />
           Processes
         </h1>
-        <p className="text-neutral-400">Monitor and manage running applications</p>
+        <p className={isDark ? 'text-neutral-400' : 'text-neutral-500'}>Monitor and manage running applications</p>
       </div>
 
       {/* STATS */}
       <div className="grid grid-cols-3 gap-4 mb-8">
-        <div className="glass rounded-xl p-4 border border-white/10">
-          <p className="text-sm text-white/60 mb-1">Total CPU Usage</p>
+        <div className={`rounded-xl p-4 border transition-colors duration-300 ${isDark ? 'glass border-white/10' : 'bg-white border-neutral-200 shadow-sm'}`}>
+          <p className={`text-sm mb-1 ${isDark ? 'text-white/60' : 'text-neutral-500'}`}>Total CPU Usage</p>
           <p className="text-2xl font-bold text-cyan-400">{totalCpu.toFixed(1)}%</p>
         </div>
-        <div className="glass rounded-xl p-4 border border-white/10">
-          <p className="text-sm text-white/60 mb-1">Total Memory</p>
+        <div className={`rounded-xl p-4 border transition-colors duration-300 ${isDark ? 'glass border-white/10' : 'bg-white border-neutral-200 shadow-sm'}`}>
+          <p className={`text-sm mb-1 ${isDark ? 'text-white/60' : 'text-neutral-500'}`}>Total Memory</p>
           <p className="text-2xl font-bold text-purple-400">{(totalMemory / 1024).toFixed(1)} GB</p>
         </div>
-        <div className="glass rounded-xl p-4 border border-white/10">
-          <p className="text-sm text-white/60 mb-1">Running Processes</p>
+        <div className={`rounded-xl p-4 border transition-colors duration-300 ${isDark ? 'glass border-white/10' : 'bg-white border-neutral-200 shadow-sm'}`}>
+          <p className={`text-sm mb-1 ${isDark ? 'text-white/60' : 'text-neutral-500'}`}>Running Processes</p>
           <p className="text-2xl font-bold text-blue-400">{processes.length}</p>
         </div>
       </div>

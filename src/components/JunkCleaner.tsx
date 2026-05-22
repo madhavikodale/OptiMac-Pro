@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Trash2, Search, Loader, CheckCircle } from 'lucide-react'
+import { useTheme } from '../contexts/ThemeContext'
 
 interface JunkFile {
   id: string
@@ -22,6 +23,7 @@ const mockJunkFiles: JunkFile[] = [
 ]
 
 export const JunkCleaner: React.FC = () => {
+  const { isDark } = useTheme()
   const [files, setFiles] = useState<JunkFile[]>(mockJunkFiles)
   const [isCleaning, setIsCleaning] = useState(false)
   const [cleanedSize, setCleanedSize] = useState(0)
@@ -72,32 +74,32 @@ export const JunkCleaner: React.FC = () => {
   }
 
   return (
-    <div className="min-h-full p-6 md:p-8 bg-neutral-950">
+    <div className={`min-h-full p-6 md:p-8 transition-colors duration-300 ${isDark ? 'bg-neutral-950' : 'bg-neutral-100'}`}>
       {/* HEADER */}
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-neutral-50 mb-2 flex items-center gap-3">
+        <h1 className={`text-4xl font-bold mb-2 flex items-center gap-3 ${isDark ? 'text-neutral-50' : 'text-neutral-900'}`}>
           <Trash2 className="text-cyan-400" size={32} />
           Junk Cleaner
         </h1>
-        <p className="text-neutral-400">Find and remove unnecessary files to free up disk space</p>
+        <p className={isDark ? 'text-neutral-400' : 'text-neutral-500'}>Find and remove unnecessary files to free up disk space</p>
       </div>
 
       {/* STATS */}
       <div className="grid grid-cols-4 gap-4 mb-8">
-        <div className="glass rounded-xl p-4 border border-white/10">
-          <p className="text-sm text-white/60 mb-1">Total Junk Found</p>
+        <div className={`rounded-xl p-4 border transition-colors duration-300 ${isDark ? 'glass border-white/10' : 'bg-white border-neutral-200 shadow-sm'}`}>
+          <p className={`text-sm mb-1 ${isDark ? 'text-white/60' : 'text-neutral-500'}`}>Total Junk Found</p>
           <p className="text-2xl font-bold text-cyan-400">{(totalSize / 1024).toFixed(1)} GB</p>
         </div>
-        <div className="glass rounded-xl p-4 border border-white/10">
-          <p className="text-sm text-white/60 mb-1">Selected to Clean</p>
+        <div className={`rounded-xl p-4 border transition-colors duration-300 ${isDark ? 'glass border-white/10' : 'bg-white border-neutral-200 shadow-sm'}`}>
+          <p className={`text-sm mb-1 ${isDark ? 'text-white/60' : 'text-neutral-500'}`}>Selected to Clean</p>
           <p className="text-2xl font-bold text-orange-400">{(selectedSize / 1024).toFixed(1)} GB</p>
         </div>
-        <div className="glass rounded-xl p-4 border border-white/10">
-          <p className="text-sm text-white/60 mb-1">Files Found</p>
+        <div className={`rounded-xl p-4 border transition-colors duration-300 ${isDark ? 'glass border-white/10' : 'bg-white border-neutral-200 shadow-sm'}`}>
+          <p className={`text-sm mb-1 ${isDark ? 'text-white/60' : 'text-neutral-500'}`}>Files Found</p>
           <p className="text-2xl font-bold text-purple-400">{files.length}</p>
         </div>
-        <div className="glass rounded-xl p-4 border border-white/10">
-          <p className="text-sm text-white/60 mb-1">Total Cleaned</p>
+        <div className={`rounded-xl p-4 border transition-colors duration-300 ${isDark ? 'glass border-white/10' : 'bg-white border-neutral-200 shadow-sm'}`}>
+          <p className={`text-sm mb-1 ${isDark ? 'text-white/60' : 'text-neutral-500'}`}>Total Cleaned</p>
           <p className="text-2xl font-bold text-green-400">{(cleanedSize / 1024).toFixed(1)} GB</p>
         </div>
       </div>

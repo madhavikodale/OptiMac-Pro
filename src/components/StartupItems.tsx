@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Power, ToggleRight, Trash2, Info } from 'lucide-react'
+import { useTheme } from '../contexts/ThemeContext'
 
 interface StartupItem {
   id: string
@@ -20,6 +21,7 @@ const mockStartupItems: StartupItem[] = [
 ]
 
 export const StartupItems: React.FC = () => {
+  const { isDark } = useTheme()
   const [items, setItems] = useState<StartupItem[]>(mockStartupItems)
 
   const handleToggle = (id: string) => {
@@ -38,26 +40,26 @@ export const StartupItems: React.FC = () => {
   const enabledCount = items.filter((i) => i.enabled).length
 
   return (
-    <div className="min-h-full p-6 md:p-8 bg-neutral-950">
+    <div className={`min-h-full p-6 md:p-8 transition-colors duration-300 ${isDark ? 'bg-neutral-950' : 'bg-neutral-100'}`}>
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-neutral-50 mb-2 flex items-center gap-3">
+        <h1 className={`text-4xl font-bold mb-2 flex items-center gap-3 ${isDark ? 'text-neutral-50' : 'text-neutral-900'}`}>
           <Power className="text-cyan-400" size={32} />
           Startup Items
         </h1>
-        <p className="text-neutral-400">Manage applications that launch at startup</p>
+        <p className={isDark ? 'text-neutral-400' : 'text-neutral-500'}>Manage applications that launch at startup</p>
       </div>
 
       <div className="grid grid-cols-3 gap-4 mb-8">
-        <div className="glass rounded-xl p-4 border border-white/10">
-          <p className="text-sm text-white/60 mb-1">Total Items</p>
+        <div className={`rounded-xl p-4 border transition-colors duration-300 ${isDark ? 'glass border-white/10' : 'bg-white border-neutral-200 shadow-sm'}`}>
+          <p className={`text-sm mb-1 ${isDark ? 'text-white/60' : 'text-neutral-500'}`}>Total Items</p>
           <p className="text-2xl font-bold text-cyan-400">{items.length}</p>
         </div>
-        <div className="glass rounded-xl p-4 border border-white/10">
-          <p className="text-sm text-white/60 mb-1">Enabled</p>
+        <div className={`rounded-xl p-4 border transition-colors duration-300 ${isDark ? 'glass border-white/10' : 'bg-white border-neutral-200 shadow-sm'}`}>
+          <p className={`text-sm mb-1 ${isDark ? 'text-white/60' : 'text-neutral-500'}`}>Enabled</p>
           <p className="text-2xl font-bold text-green-400">{enabledCount}</p>
         </div>
-        <div className="glass rounded-xl p-4 border border-white/10">
-          <p className="text-sm text-white/60 mb-1">Startup Time</p>
+        <div className={`rounded-xl p-4 border transition-colors duration-300 ${isDark ? 'glass border-white/10' : 'bg-white border-neutral-200 shadow-sm'}`}>
+          <p className={`text-sm mb-1 ${isDark ? 'text-white/60' : 'text-neutral-500'}`}>Startup Time</p>
           <p className="text-2xl font-bold text-purple-400">{totalStartupTime.toFixed(1)}s</p>
         </div>
       </div>

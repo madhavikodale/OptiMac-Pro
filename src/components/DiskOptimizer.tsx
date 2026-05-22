@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { HardDrive, TrendingUp, AlertCircle } from 'lucide-react'
+import { useTheme } from '../contexts/ThemeContext'
 
 interface DiskPartition {
   id: string
@@ -31,6 +32,7 @@ const mockLargeFolders: LargeFolder[] = [
 ]
 
 export const DiskOptimizer: React.FC = () => {
+  const { isDark } = useTheme()
   const [selectedPartition, setSelectedPartition] = useState('1')
 
   const selectedDisk = mockPartitions.find((p) => p.id === selectedPartition)
@@ -49,14 +51,14 @@ export const DiskOptimizer: React.FC = () => {
   }
 
   return (
-    <div className="min-h-full p-6 md:p-8 bg-neutral-950">
+    <div className={`min-h-full p-6 md:p-8 transition-colors duration-300 ${isDark ? 'bg-neutral-950' : 'bg-neutral-100'}`}>
       {/* HEADER */}
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-neutral-50 mb-2 flex items-center gap-3">
+        <h1 className={`text-4xl font-bold mb-2 flex items-center gap-3 ${isDark ? 'text-neutral-50' : 'text-neutral-900'}`}>
           <HardDrive className="text-cyan-400" size={32} />
           Disk Optimizer
         </h1>
-        <p className="text-neutral-400">Analyze and optimize your disk storage</p>
+        <p className={isDark ? 'text-neutral-400' : 'text-neutral-500'}>Analyze and optimize your disk storage</p>
       </div>
 
       {/* PARTITION TABS */}
@@ -83,7 +85,7 @@ export const DiskOptimizer: React.FC = () => {
             <div className="mb-6">
               <div className="flex items-end justify-between mb-4">
                 <div>
-                  <p className="text-sm text-white/60 mb-1">Disk Usage</p>
+                  <p className={`text-sm mb-1 ${isDark ? 'text-white/60' : 'text-neutral-500'}`}>Disk Usage</p>
                   <p className="text-4xl font-bold text-white">
                     {selectedDisk.used} GB / {selectedDisk.total} GB
                   </p>

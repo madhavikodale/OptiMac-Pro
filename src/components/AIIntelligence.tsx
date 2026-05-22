@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Brain, Lightbulb, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react'
+import { useTheme } from '../contexts/ThemeContext'
 
 interface Insight {
   id: string
@@ -54,6 +55,7 @@ const mockInsights: Insight[] = [
 ]
 
 export const AIIntelligence: React.FC = () => {
+  const { isDark } = useTheme()
   const [dismissedInsights, setDismissedInsights] = useState<string[]>([])
 
   const handleDismiss = (id: string) => {
@@ -92,28 +94,28 @@ export const AIIntelligence: React.FC = () => {
   }
 
   return (
-    <div className="min-h-full p-6 md:p-8 bg-neutral-950">
+    <div className={`min-h-full p-6 md:p-8 transition-colors duration-300 ${isDark ? 'bg-neutral-950' : 'bg-neutral-100'}`}>
       {/* HEADER */}
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-neutral-50 mb-2 flex items-center gap-3">
+        <h1 className={`text-4xl font-bold mb-2 flex items-center gap-3 ${isDark ? 'text-neutral-50' : 'text-neutral-900'}`}>
           <Brain className="text-cyan-400" size={32} />
           AI Intelligence
         </h1>
-        <p className="text-neutral-400">Machine learning-powered system analysis and recommendations</p>
+        <p className={isDark ? 'text-neutral-400' : 'text-neutral-500'}>Machine learning-powered system analysis and recommendations</p>
       </div>
 
       {/* STATS */}
       <div className="grid grid-cols-3 gap-4 mb-8">
-        <div className="glass rounded-xl p-4 border border-white/10">
-          <p className="text-sm text-white/60 mb-1">Total Insights</p>
+        <div className={`rounded-xl p-4 border transition-colors duration-300 ${isDark ? 'glass border-white/10' : 'bg-white border-neutral-200 shadow-sm'}`}>
+          <p className={`text-sm mb-1 ${isDark ? 'text-white/60' : 'text-neutral-500'}`}>Total Insights</p>
           <p className="text-2xl font-bold text-cyan-400">{visibleInsights.length}</p>
         </div>
-        <div className="glass rounded-xl p-4 border border-white/10">
-          <p className="text-sm text-white/60 mb-1">High Priority</p>
+        <div className={`rounded-xl p-4 border transition-colors duration-300 ${isDark ? 'glass border-white/10' : 'bg-white border-neutral-200 shadow-sm'}`}>
+          <p className={`text-sm mb-1 ${isDark ? 'text-white/60' : 'text-neutral-500'}`}>High Priority</p>
           <p className="text-2xl font-bold text-red-400">{highPriorityCount}</p>
         </div>
-        <div className="glass rounded-xl p-4 border border-white/10">
-          <p className="text-sm text-white/60 mb-1">Potential Impact</p>
+        <div className={`rounded-xl p-4 border transition-colors duration-300 ${isDark ? 'glass border-white/10' : 'bg-white border-neutral-200 shadow-sm'}`}>
+          <p className={`text-sm mb-1 ${isDark ? 'text-white/60' : 'text-neutral-500'}`}>Potential Impact</p>
           <p className="text-2xl font-bold text-purple-400">{avgImpact}</p>
         </div>
       </div>

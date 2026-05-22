@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { HashRouter as Router, Routes, Route } from 'react-router-dom'
-import { ThemeProvider } from './contexts/ThemeContext'
+import { ThemeProvider, useTheme } from './contexts/ThemeContext'
 import { Sidebar } from './components/Sidebar'
 import { Header } from './components/Header'
 import { CommandPalette } from './components/CommandPalette'
@@ -21,6 +21,7 @@ import { NetworkMonitor } from './components/NetworkMonitor'
 import './styles/globals.css'
 
 function AppContent() {
+  const { isDark } = useTheme()
   const [systemHealth, setSystemHealth] = useState(92)
   const [systemStatus, setSystemStatus] = useState<'excellent' | 'good' | 'warning' | 'critical'>('excellent')
 
@@ -35,11 +36,17 @@ function AppContent() {
   }, [])
 
   return (
-    <div className="flex h-screen w-screen bg-neutral-950 overflow-hidden">
+    <div className={`flex h-screen w-screen overflow-hidden transition-colors duration-300 ${
+      isDark ? 'bg-neutral-950' : 'bg-neutral-100'
+    }`}>
       <Sidebar />
-      <div className="flex flex-col flex-1 overflow-hidden bg-neutral-950">
+      <div className={`flex flex-col flex-1 overflow-hidden transition-colors duration-300 ${
+        isDark ? 'bg-neutral-950' : 'bg-neutral-100'
+      }`}>
         <Header systemHealth={systemHealth} systemStatus={systemStatus} />
-        <main className="flex-1 overflow-y-auto overflow-x-hidden bg-neutral-950">
+        <main className={`flex-1 overflow-y-auto overflow-x-hidden transition-colors duration-300 ${
+          isDark ? 'bg-neutral-950' : 'bg-neutral-100'
+        }`}>
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/performance" element={<Performance />} />
