@@ -1,5 +1,5 @@
 import React, { useState, lazy, Suspense, useEffect } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import CommandPalette from './components/CommandPalette'
@@ -8,6 +8,7 @@ import LoadingFallback from './components/LoadingFallback'
 import ToastProvider from './components/ToastProvider'
 import ShortcutsOverlay from './components/ShortcutsOverlay'
 
+// CACHE BUSTER v2 — forces Vite to rebuild all chunks
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Optimize = lazy(() => import('./pages/Optimize'))
 const DeepCleanup = lazy(() => import('./pages/DeepCleanup'))
@@ -30,6 +31,7 @@ const ProjectPurge = lazy(() => import('./pages/ProjectPurge'))
 const MemoryPressurePage = lazy(() => import('./pages/MemoryPressure'))
 const Smart = lazy(() => import('./pages/Smart'))
 
+const BUILD_ID = "v2.1.0-" + Date.now()
 export default function App() {
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem('optimac-theme')
@@ -45,7 +47,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <ToastProvider>
-        <div style={{ display: 'flex', height: '100vh', width: '100vw', backgroundColor: 'var(--bg-primary)', overflow: 'hidden' }}>
+        <div data-build-id="optimac-v2-2025" style={{ display: 'flex', height: '100vh', width: '100vw', backgroundColor: 'var(--bg-primary)', overflow: 'hidden' }}>
           <Sidebar />
           <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
             <Header isDark={isDark} setIsDark={setIsDark} />
@@ -73,6 +75,7 @@ export default function App() {
                   <Route path="/project-purge" element={<ProjectPurge />} />
                   <Route path="/smart" element={<Smart />} />
                   <Route path="/settings" element={<Settings />} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </Suspense>
             </main>
