@@ -22,3 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Rust build artifacts
+src-tauri/target/
+
+# Tauri generated schemas (regenerated on build)
+src-tauri/gen/schemas/
+
+# Cargo lock (optional for apps, keep for libs)
+# src-tauri/Cargo.lock
