@@ -1,40 +1,86 @@
-import React, { useState } from 'react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import React, { useState, lazy, Suspense, useEffect } from 'react'
+import { Routes, Route } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import CommandPalette from './components/CommandPalette'
-import Dashboard from './pages/Dashboard'
-import Optimize from './pages/Optimize'
-import Processes from './pages/Processes'
-import Network from './pages/Network'
-import Storage from './pages/Storage'
-import Settings from './pages/Settings'
-import './index.css'
+import ErrorBoundary from './components/ErrorBoundary'
+import LoadingFallback from './components/LoadingFallback'
+import ToastProvider from './components/ToastProvider'
+import ShortcutsOverlay from './components/ShortcutsOverlay'
 
-function App() {
-  const [isDark, setIsDark] = useState(true)
+const Dashboard = lazy(() => import('./pages/Dashboard'))
+const Optimize = lazy(() => import('./pages/Optimize'))
+const DeepCleanup = lazy(() => import('./pages/DeepCleanup'))
+const Processes = lazy(() => import('./pages/Processes'))
+const Network = lazy(() => import('./pages/Network'))
+const Storage = lazy(() => import('./pages/Storage'))
+const Settings = lazy(() => import('./pages/Settings'))
+const Startup = lazy(() => import('./pages/Startup'))
+const BatteryPage = lazy(() => import('./pages/Battery'))
+const Temperature = lazy(() => import('./pages/Temperature'))
+const AiIntelligence = lazy(() => import('./pages/AiIntelligence'))
+const Firewall = lazy(() => import('./pages/Firewall'))
+const Uninstaller = lazy(() => import('./pages/Uninstaller'))
+const SmartUninstall = lazy(() => import('./pages/SmartUninstall'))
+const SpeedTest = lazy(() => import('./pages/SpeedTest'))
+const Duplicates = lazy(() => import('./pages/Duplicates'))
+const DiskAnalyzer = lazy(() => import('./pages/DiskAnalyzer'))
+const MenuBarWidget = lazy(() => import('./pages/MenuBarWidget'))
+const ProjectPurge = lazy(() => import('./pages/ProjectPurge'))
+const MemoryPressurePage = lazy(() => import('./pages/MemoryPressure'))
+const Smart = lazy(() => import('./pages/Smart'))
+
+export default function App() {
+  const [isDark, setIsDark] = useState(() => {
+    const saved = localStorage.getItem('optimac-theme')
+    return saved ? saved === 'dark' : true
+  })
+  const [showShortcuts, setShowShortcuts] = useState(false)
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light')
+    localStorage.setItem('optimac-theme', isDark ? 'dark' : 'light')
+  }, [isDark])
 
   return (
-    <Router>
-      <div style={{ display: 'flex', height: '100vh', width: '100vw', backgroundColor: '#0a0a0a', overflow: 'hidden' }}>
-        <Sidebar />
-        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
-          <Header isDark={isDark} setIsDark={setIsDark} />
-          <main style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/optimize" element={<Optimize />} />
-              <Route path="/processes" element={<Processes />} />
-              <Route path="/network" element={<Network />} />
-              <Route path="/storage" element={<Storage />} />
-              <Route path="/settings" element={<Settings />} />
-            </Routes>
-          </main>
+    <ErrorBoundary>
+      <ToastProvider>
+        <div style={{ display: 'flex', height: '100vh', width: '100vw', backgroundColor: 'var(--bg-primary)', overflow: 'hidden' }}>
+          <Sidebar />
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+            <Header isDark={isDark} setIsDark={setIsDark} />
+            <main style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-primary)' }}>
+              <Suspense fallback={<LoadingFallback />}>
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/optimize" element={<Optimize />} />
+                  <Route path="/deep-cleanup" element={<DeepCleanup />} />
+                  <Route path="/processes" element={<Processes />} />
+                  <Route path="/network" element={<Network />} />
+                  <Route path="/storage" element={<Storage />} />
+                  <Route path="/startup" element={<Startup />} />
+                  <Route path="/battery" element={<BatteryPage />} />
+                  <Route path="/temperature" element={<Temperature />} />
+                  <Route path="/ai" element={<AiIntelligence />} />
+                  <Route path="/firewall" element={<Firewall />} />
+                  <Route path="/uninstaller" element={<Uninstaller />} />
+                  <Route path="/smart-uninstall" element={<SmartUninstall />} />
+                  <Route path="/speedtest" element={<SpeedTest />} />
+                  <Route path="/duplicates" element={<Duplicates />} />
+                  <Route path="/disk-analyzer" element={<DiskAnalyzer />} />
+                  <Route path="/memory" element={<MemoryPressurePage />} />
+                  <Route path="/menu-bar" element={<MenuBarWidget />} />
+                  <Route path="/project-purge" element={<ProjectPurge />} />
+                  <Route path="/smart" element={<Smart />} />
+                  <Route path="/settings" element={<Settings />} />
+                </Routes>
+              </Suspense>
+            </main>
+          </div>
+          <CommandPalette />
+          <ShortcutsOverlay visible={showShortcuts} onClose={() => setShowShortcuts(false)} />
         </div>
-        <CommandPalette />
-      </div>
-    </Router>
+      </ToastProvider>
+    </ErrorBoundary>
   )
 }
-
-export default App

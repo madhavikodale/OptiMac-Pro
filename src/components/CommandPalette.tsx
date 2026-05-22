@@ -212,7 +212,6 @@ export default function CommandPalette() {
                           padding: '12px 16px',
                           margin: '0 8px',
                           borderRadius: '10px',
-                          border: 'none',
                           background: isSelected
                             ? `linear-gradient(135deg, rgba(${cmd.color},0.2) 0%, rgba(${cmd.color},0.1) 100%)`
                             : 'transparent',

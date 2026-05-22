@@ -15,7 +15,14 @@
         "width": 1400,
         "height": 900,
         "minWidth": 1200,
-        "minHeight": 800
+        "minHeight": 800,
+        "decorations": true,
+        "transparent": false,
+        "center": true,
+        "resizable": true,
+        "fullscreen": false,
+        "visible": true,
+        "shadow": false
       }
     ],
     "security": {
@@ -24,6 +31,12 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["app", "dmg"]
+    "targets": ["app", "dmg"],
+    "macOS": {
+      "frameworks": [],
+      "minimumSystemVersion": "10.15",
+      "signingIdentity": null,
+      "entitlements": null
+    }
   }
 }

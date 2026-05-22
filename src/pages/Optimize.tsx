@@ -1,44 +1,104 @@
+import React, { useState } from 'react'
+import { Zap, Trash2, Cpu, Wrench, CheckCircle2, Loader2 } from 'lucide-react'
+import PageLayout from '../components/PageLayout'
+import { runOptimization } from '../lib/tauri'
+import { useToast } from '../components/Toast'
+
+interface Task {
+  id: string
+  label: string
+  description: string
+  icon: React.ElementType
+  color: string
+  running: boolean
+  completed: boolean
+}
+
 export default function Optimize() {
+  const [tasks, setTasks] = useState<Task[]>([
+    { id: 'clear_cache', label: 'Clear System Cache', description: 'Remove temporary and cached files', icon: Trash2, color: '#06b6d4', running: false, completed: false },
+    { id: 'free_memory', label: 'Free Memory', description: 'Release unused RAM', icon: Cpu, color: '#8b5cf6', running: false, completed: false },
+    { id: 'repair_permissions', label: 'Repair Permissions', description: 'Fix file system permissions', icon: Wrench, color: '#f59e0b', running: false, completed: false },
+    { id: 'rebuild_spotlight', label: 'Rebuild Spotlight', description: 'Reindex search database', icon: Zap, color: '#10b981', running: false, completed: false },
+  ])
+
+  const toast = useToast()
+
+  const runTask = async (taskId: string) => {
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, running: true } : t))
+
+    try {
+      const result = await runOptimization(taskId)
+      toast?.addToast(result, 'success')
+      setTasks(prev => prev.map(t => t.id === taskId ? { ...t, running: false, completed: true } : t))
+      setTimeout(() => {
+        setTasks(prev => prev.map(t => t.id === taskId ? { ...t, completed: false } : t))
+      }, 3000)
+    } catch (e) {
+      toast?.addToast('Optimization failed', 'error')
+      setTasks(prev => prev.map(t => t.id === taskId ? { ...t, running: false } : t))
+    }
+  }
+
   return (
-    <div style={{ width: '100%', padding: '32px', backgroundColor: '#0a0a0a', overflowY: 'auto' }}>
-      <div style={{ maxWidth: '1600px', margin: '0 auto' }}>
-        <h1 style={{ fontSize: '40px', fontWeight: 'bold', color: 'white', marginBottom: '16px' }}>One-Click Optimize</h1>
-        <p style={{ color: 'rgba(255,255,255,0.6)', marginBottom: '40px', fontSize: '14px' }}>Run optimization tasks to boost your system performance</p>
+    <PageLayout title="One-Click Optimize" subtitle="Run optimization tasks to boost your system performance">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
+        {tasks.map((task) => {
+          const Icon = task.icon
+          return (
+            <div
+              key={task.id}
+              style={{
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '16px',
+                padding: '28px',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                cursor: task.running ? 'wait' : 'pointer',
+              }}
+              onMouseEnter={(e) => {
+                if (!task.running) {
+                  e.currentTarget.style.transform = 'translateY(-4px)'
+                  e.currentTarget.style.boxShadow = 'var(--shadow-md)'
+                  e.currentTarget.style.borderColor = 'var(--border-hover)'
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)'
+                e.currentTarget.style.boxShadow = 'none'
+                e.currentTarget.style.borderColor = 'var(--border-color)'
+              }}
+              onClick={() => !task.running && runTask(task.id)}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
+                <div style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '12px',
+                  background: `linear-gradient(135deg, ${task.color}20 0%, ${task.color}10 100%)`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: task.color,
+                  border: `1px solid ${task.color}25`,
+                }}>
+                  {task.completed ? <CheckCircle2 size={22} /> : task.running ? <Loader2 size={22} style={{ animation: 'spin 1s linear infinite' }} /> : <Icon size={22} />}
+                </div>
+                <div>
+                  <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '2px' }}>{task.label}</div>
+                  <div style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>{task.description}</div>
+                </div>
+              </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-          <div style={{ background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '24px' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'white', marginBottom: '12px' }}>🧹 Clear Cache</h3>
-            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px', marginBottom: '16px' }}>Remove temporary files and cache</p>
-            <button style={{ width: '100%', padding: '10px 16px', background: 'linear-gradient(to right, #06b6d4, #0891b2)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
-              Start
-            </button>
-          </div>
-
-          <div style={{ background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '24px' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'white', marginBottom: '12px' }}>⚡ Boost Performance</h3>
-            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px', marginBottom: '16px' }}>Optimize system memory and CPU</p>
-            <button style={{ width: '100%', padding: '10px 16px', background: 'linear-gradient(to right, #a78bfa, #9333ea)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
-              Start
-            </button>
-          </div>
-
-          <div style={{ background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '24px' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'white', marginBottom: '12px' }}>🗑️ Remove Duplicates</h3>
-            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px', marginBottom: '16px' }}>Find and remove duplicate files</p>
-            <button style={{ width: '100%', padding: '10px 16px', background: 'linear-gradient(to right, #4ade80, #22c55e)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
-              Start
-            </button>
-          </div>
-
-          <div style={{ background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '24px' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'white', marginBottom: '12px' }}>🔧 System Maintenance</h3>
-            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px', marginBottom: '16px' }}>Run system maintenance tasks</p>
-            <button style={{ width: '100%', padding: '10px 16px', background: 'linear-gradient(to right, #f59e0b, #d97706)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
-              Start
-            </button>
-          </div>
-        </div>
+              {task.running && (
+                <div style={{ height: '4px', background: 'var(--bg-input)', borderRadius: '2px', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: '100%', background: `linear-gradient(90deg, ${task.color}, ${task.color}88)`, borderRadius: '2px', animation: 'shimmer 1s infinite' }} />
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
-    </div>
+    </PageLayout>
   )
 }
