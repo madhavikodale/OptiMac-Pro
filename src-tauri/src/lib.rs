@@ -8,6 +8,8 @@ pub fn run() {
     .invoke_handler(tauri::generate_handler![
       commands::scan_dev_junk,
       commands::clean_dev_junk,
+      commands::scan_github_repos,
+      commands::optimize_local_repos,
       commands::get_system_health,
       commands::get_cpu_info,
       commands::get_memory_info,

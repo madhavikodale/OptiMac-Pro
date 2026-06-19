@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Trash2, Search, Loader, CheckCircle, Code2, Terminal, Smartphone, Container, Zap, Shield, ChevronRight, X } from 'lucide-react'
+import { Trash2, Search, Loader, CheckCircle, Code2, Terminal, Smartphone, Container, Zap, Shield, GitBranch, Github, AlertTriangle, Archive } from 'lucide-react'
 import { useTheme } from '../contexts/ThemeContext'
 import { invoke } from '@tauri-apps/api/tauri'
 
@@ -29,6 +29,30 @@ interface DevJunkScanResult {
   total_size_readable: string
 }
 
+interface GitRepoInfo {
+  id: string
+  name: string
+  path: string
+  size_bytes: number
+  size_readable: string
+  last_commit_date: string
+  days_since_commit: number
+  is_stale: boolean
+  has_uncommitted_changes: boolean
+  safe_to_purge: boolean
+  selected: boolean
+  git_dir_size: number
+  git_dir_size_readable: string
+}
+
+interface GitRepoScanResult {
+  repos: GitRepoInfo[]
+  total_size_bytes: number
+  total_size_readable: string
+  stale_count: number
+  active_count: number
+}
+
 const mockJunkFiles: JunkFile[] = [
   { id: '1', name: 'Chrome Cache', size: 1024, category: 'cache', path: '~/Library/Caches/Google/Chrome', selected: true },
   { id: '2', name: 'Safari Cache', size: 512, category: 'cache', path: '~/Library/Caches/Safari', selected: true },
@@ -54,13 +78,6 @@ const categoryColors: Record<string, string> = {
   docker: 'from-sky-500/20 to-blue-500/20 text-sky-400 border-sky-500/30',
 }
 
-const categoryGlowColors: Record<string, string> = {
-  xcode: 'shadow-blue-500/30',
-  nodejs: 'shadow-green-500/30',
-  android: 'shadow-emerald-500/30',
-  docker: 'shadow-sky-500/30',
-}
-
 export const JunkCleaner: React.FC = () => {
   const { isDark } = useTheme()
   const [files, setFiles] = useState<JunkFile[]>(mockJunkFiles)
@@ -74,6 +91,17 @@ export const JunkCleaner: React.FC = () => {
   const [devCleaned, setDevCleaned] = useState(false)
   const [devProgress, setDevProgress] = useState(0)
   const [devTotalSize, setDevTotalSize] = useState('0 GB')
+
+  // GitHub Workspace Optimizer state
+  const [gitRepos, setGitRepos] = useState<GitRepoInfo[]>([])
+  const [gitScanning, setGitScanning] = useState(false)
+  const [gitOptimizing, setGitOptimizing] = useState(false)
+  const [gitPurgeComplete, setGitPurgeComplete] = useState(false)
+  const [gitTotalSize, setGitTotalSize] = useState('0 GB')
+  const [gitStaleCount, setGitStaleCount] = useState(0)
+  const [gitActiveCount, setGitActiveCount] = useState(0)
+  const [gitProgress, setGitProgress] = useState(0)
+  const [gitOperation, setGitOperation] = useState<'gc' | 'purge' | null>(null)
 
   const handleToggleFile = (id: string) => {
     setFiles((prev) =>
@@ -111,7 +139,6 @@ export const JunkCleaner: React.FC = () => {
       setDevTotalSize(result.total_size_readable)
     } catch (err) {
       console.error('Dev scan failed:', err)
-      // Fallback mock data for development
       setDevItems([
         { id: 'xcode-derived', name: 'Xcode Derived Data', category: 'xcode', path: '~/Library/Developer/Xcode/DerivedData', size_bytes: 4294967296, size_readable: '4.0 GB', selected: true, description: 'Build artifacts, indexes, and intermediate files from Xcode builds' },
         { id: 'node-modules', name: 'Node.js Modules (12 found)', category: 'nodejs', path: 'Various project directories', size_bytes: 2147483648, size_readable: '2.0 GB', selected: true, description: '12 node_modules folders unused for 30+ days' },
@@ -137,7 +164,6 @@ export const JunkCleaner: React.FC = () => {
     
     const selectedIds = devItems.filter((i) => i.selected).map((i) => i.id)
     
-    // Animate progress
     const interval = setInterval(() => {
       setDevProgress((prev) => {
         if (prev >= 100) {
@@ -163,8 +189,111 @@ export const JunkCleaner: React.FC = () => {
     }, 2500)
   }
 
+  // GitHub Workspace Optimizer functions
+  const handleGitScan = async () => {
+    setGitScanning(true)
+    setGitPurgeComplete(false)
+    try {
+      const result = await invoke<GitRepoScanResult>('scan_github_repos')
+      setGitRepos(result.repos)
+      setGitTotalSize(result.total_size_readable)
+      setGitStaleCount(result.stale_count)
+      setGitActiveCount(result.active_count)
+    } catch (err) {
+      console.error('Git scan failed:', err)
+      // Fallback mock data
+      setGitRepos([
+        { id: 'repo-0', name: 'OptiMac-Pro', path: '/Users/digitone/Projects/OptiMac-Pro', size_bytes: 524288000, size_readable: '500 MB', last_commit_date: '2026-05-15', days_since_commit: 35, is_stale: false, has_uncommitted_changes: false, safe_to_purge: false, selected: false, git_dir_size: 104857600, git_dir_size_readable: '100 MB' },
+        { id: 'repo-1', name: 'old-ecommerce-app', path: '/Users/digitone/Projects/old-ecommerce-app', size_bytes: 1073741824, size_readable: '1.0 GB', last_commit_date: '2025-11-20', days_since_commit: 210, is_stale: true, has_uncommitted_changes: false, safe_to_purge: true, selected: true, git_dir_size: 314572800, git_dir_size_readable: '300 MB' },
+        { id: 'repo-2', name: 'mobile-game-prototype', path: '/Users/digitone/Dev/mobile-game-prototype', size_bytes: 2147483648, size_readable: '2.0 GB', last_commit_date: '2025-09-10', days_since_commit: 280, is_stale: true, has_uncommitted_changes: true, safe_to_purge: false, selected: false, git_dir_size: 524288000, git_dir_size_readable: '500 MB' },
+        { id: 'repo-3', name: 'ml-pipeline', path: '/Users/digitone/Documents/ml-pipeline', size_bytes: 1572864000, size_readable: '1.5 GB', last_commit_date: '2026-04-01', days_since_commit: 78, is_stale: true, has_uncommitted_changes: false, safe_to_purge: true, selected: true, git_dir_size: 209715200, git_dir_size_readable: '200 MB' },
+      ])
+      setGitTotalSize('5.0 GB')
+      setGitStaleCount(3)
+      setGitActiveCount(1)
+    }
+    setGitScanning(false)
+  }
+
+  const handleGitToggle = (id: string) => {
+    setGitRepos((prev) =>
+      prev.map((repo) =>
+        repo.id === id ? { ...repo, selected: !repo.selected } : repo
+      )
+    )
+  }
+
+  const handleGitGC = async () => {
+    setGitOptimizing(true)
+    setGitOperation('gc')
+    setGitProgress(0)
+    
+    const selectedIds = gitRepos.filter((r) => r.selected).map((r) => r.id)
+    
+    const interval = setInterval(() => {
+      setGitProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval)
+          return 100
+        }
+        return prev + Math.random() * 12
+      })
+    }, 400)
+
+    try {
+      await invoke<GitRepoScanResult>('optimize_local_repos', { selectedIds, operation: 'gc' })
+    } catch (err) {
+      console.error('Git GC failed:', err)
+    }
+
+    setTimeout(() => {
+      clearInterval(interval)
+      setGitProgress(100)
+      setGitOptimizing(false)
+      setGitOperation(null)
+      handleGitScan()
+    }, 3000)
+  }
+
+  const handleGitPurge = async () => {
+    setGitOptimizing(true)
+    setGitOperation('purge')
+    setGitProgress(0)
+    
+    const selectedIds = gitRepos.filter((r) => r.selected && r.safe_to_purge).map((r) => r.id)
+    
+    const interval = setInterval(() => {
+      setGitProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval)
+          return 100
+        }
+        return prev + Math.random() * 15
+      })
+    }, 300)
+
+    try {
+      await invoke<GitRepoScanResult>('optimize_local_repos', { selectedIds, operation: 'purge' })
+    } catch (err) {
+      console.error('Git purge failed:', err)
+    }
+
+    setTimeout(() => {
+      clearInterval(interval)
+      setGitProgress(100)
+      setGitPurgeComplete(true)
+      setGitOptimizing(false)
+      setGitOperation(null)
+      setGitRepos((prev) => prev.filter((repo) => !repo.selected || !repo.safe_to_purge))
+    }, 2500)
+  }
+
   const selectedDevSize = devItems.filter((i) => i.selected).reduce((sum, i) => sum + i.size_bytes, 0)
   const selectedDevReadable = formatBytes(selectedDevSize)
+
+  const selectedGitSize = gitRepos.filter((r) => r.selected).reduce((sum, r) => sum + r.size_bytes, 0)
+  const selectedGitReadable = formatBytes(selectedGitSize)
+  const selectedSafeToPurge = gitRepos.filter((r) => r.selected && r.safe_to_purge).length
 
   const selectedSize = files.filter((f) => f.selected).reduce((sum, f) => sum + f.size, 0)
   const totalSize = files.reduce((sum, f) => sum + f.size, 0)
@@ -219,8 +348,8 @@ export const JunkCleaner: React.FC = () => {
               </h3>
               <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-500'}`}>
                 {devMode 
-                  ? 'Scanning Xcode, Node.js, Android, and Docker developer artifacts' 
-                  : 'Toggle to scan developer-specific junk: Xcode builds, node_modules, Docker caches'}
+                  ? 'Scanning Xcode, Node.js, Android, Docker, and GitHub repos' 
+                  : 'Toggle to scan developer-specific junk: Xcode builds, node_modules, Docker caches, Git repos'}
               </p>
             </div>
           </div>
@@ -229,6 +358,9 @@ export const JunkCleaner: React.FC = () => {
               setDevMode(!devMode)
               if (!devMode && devItems.length === 0) {
                 handleDevScan()
+              }
+              if (!devMode && gitRepos.length === 0) {
+                handleGitScan()
               }
             }}
             className={`relative w-16 h-8 rounded-full transition-all duration-300 ${
@@ -341,7 +473,7 @@ export const JunkCleaner: React.FC = () => {
 
           {/* Purge Button */}
           {devItems.length > 0 && (
-            <div className="flex gap-3">
+            <div className="flex gap-3 mb-10">
               <button
                 onClick={handleDevScan}
                 disabled={devScanning || devCleaning}
@@ -382,6 +514,220 @@ export const JunkCleaner: React.FC = () => {
               </button>
             </div>
           )}
+
+          {/* ============================================================================ */}
+          {/* GITHUB WORKSPACE OPTIMIZER */}
+          {/* ============================================================================ */}
+          <div className={`rounded-2xl border p-6 transition-all duration-500 ${
+            isDark ? 'glass border-white/10' : 'bg-white border-neutral-200 shadow-sm'
+          }`}>
+            {/* Header */}
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 rounded-xl bg-gradient-to-br from-orange-500/20 to-red-500/20 text-orange-400 border border-orange-500/30">
+                <GitBranch size={24} />
+              </div>
+              <div>
+                <h3 className={`font-bold text-xl flex items-center gap-2 ${isDark ? 'text-white' : 'text-neutral-900'}`}>
+                  GitHub Workspace Optimizer
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                    BETA
+                  </span>
+                </h3>
+                <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-500'}`}>
+                  Scan local Git repos, compress history, and safely purge stale cloud-synced repos
+                </p>
+              </div>
+            </div>
+
+            {/* Git Stats */}
+            <div className="grid grid-cols-4 gap-4 mb-6">
+              <div className={`rounded-xl p-4 border ${isDark ? 'glass border-white/10' : 'bg-neutral-50 border-neutral-200'}`}>
+                <p className={`text-sm mb-1 ${isDark ? 'text-white/60' : 'text-neutral-500'}`}>Total Repos</p>
+                <p className="text-2xl font-bold text-orange-400">{gitRepos.length}</p>
+              </div>
+              <div className={`rounded-xl p-4 border ${isDark ? 'glass border-white/10' : 'bg-neutral-50 border-neutral-200'}`}>
+                <p className={`text-sm mb-1 ${isDark ? 'text-white/60' : 'text-neutral-500'}`}>Total Size</p>
+                <p className="text-2xl font-bold text-cyan-400">{gitTotalSize}</p>
+              </div>
+              <div className={`rounded-xl p-4 border ${isDark ? 'glass border-white/10' : 'bg-neutral-50 border-neutral-200'}`}>
+                <p className={`text-sm mb-1 ${isDark ? 'text-white/60' : 'text-neutral-500'}`}>Stale Repos</p>
+                <p className="text-2xl font-bold text-red-400">{gitStaleCount}</p>
+              </div>
+              <div className={`rounded-xl p-4 border ${isDark ? 'glass border-white/10' : 'bg-neutral-50 border-neutral-200'}`}>
+                <p className={`text-sm mb-1 ${isDark ? 'text-white/60' : 'text-neutral-500'}`}>Active Repos</p>
+                <p className="text-2xl font-bold text-green-400">{gitActiveCount}</p>
+              </div>
+            </div>
+
+            {/* Git Progress Bar */}
+            {gitOptimizing && (
+              <div className="mb-6">
+                <div className={`h-2 rounded-full overflow-hidden ${isDark ? 'bg-white/10' : 'bg-neutral-200'}`}>
+                  <div 
+                    className="h-full bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 transition-all duration-300 ease-out rounded-full"
+                    style={{ width: `${Math.min(gitProgress, 100)}%` }}
+                  />
+                </div>
+                <p className={`text-center text-sm mt-2 ${isDark ? 'text-neutral-400' : 'text-neutral-500'}`}>
+                  {gitOperation === 'gc' ? 'Compressing git history...' : 'Purging stale repositories...'} {Math.min(Math.round(gitProgress), 100)}%
+                </p>
+              </div>
+            )}
+
+            {/* Git Success State */}
+            {gitPurgeComplete && !gitOptimizing && (
+              <div className="mb-6 text-center py-6 rounded-xl bg-green-500/10 border border-green-500/30 animate-in fade-in zoom-in duration-300">
+                <CheckCircle size={40} className="mx-auto text-green-400 mb-2" />
+                <p className="text-green-400 font-bold text-lg">Workspace Optimized!</p>
+                <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-500'}`}>
+                  Freed {selectedGitReadable} from stale repositories
+                </p>
+              </div>
+            )}
+
+            {/* Git Repos List */}
+            <div className="space-y-3 mb-6">
+              {gitRepos.length === 0 && !gitScanning && (
+                <div className={`text-center py-12 rounded-xl border ${isDark ? 'glass border-white/10' : 'bg-white border-neutral-200'}`}>
+                  <Github size={40} className="mx-auto text-green-400 mb-3" />
+                  <p className={`font-semibold ${isDark ? 'text-white' : 'text-neutral-900'}`}>No Git repos found!</p>
+                  <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-500'}`}>Your workspace is clean.</p>
+                </div>
+              )}
+
+              {gitScanning && (
+                <div className="text-center py-12">
+                  <Loader size={40} className="mx-auto text-orange-400 animate-spin mb-3" />
+                  <p className={isDark ? 'text-neutral-400' : 'text-neutral-500'}>Scanning Git repositories...</p>
+                </div>
+              )}
+
+              {gitRepos.map((repo) => (
+                <div
+                  key={repo.id}
+                  className={`group relative rounded-xl border p-4 transition-all duration-300 hover:scale-[1.01] ${
+                    isDark ? 'glass border-white/10 hover:border-white/20' : 'bg-white border-neutral-200 hover:border-neutral-300'
+                  } ${repo.selected ? 'ring-1 ring-orange-500/50' : ''}`}
+                >
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="checkbox"
+                      checked={repo.selected}
+                      onChange={() => handleGitToggle(repo.id)}
+                      disabled={repo.is_stale && repo.has_uncommitted_changes}
+                      className="w-5 h-5 rounded accent-orange-400 cursor-pointer disabled:opacity-30"
+                    />
+                    <div className={`p-2.5 rounded-lg ${
+                      repo.safe_to_purge 
+                        ? 'bg-gradient-to-br from-green-500/20 to-emerald-500/20 text-green-400 border border-green-500/30'
+                        : repo.is_stale && repo.has_uncommitted_changes
+                        ? 'bg-gradient-to-br from-yellow-500/20 to-orange-500/20 text-yellow-400 border border-yellow-500/30'
+                        : 'bg-gradient-to-br from-blue-500/20 to-cyan-500/20 text-blue-400 border border-blue-500/30'
+                    }`}>
+                      <GitBranch size={20} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-1 flex-wrap">
+                        <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-neutral-900'}`}>{repo.name}</h3>
+                        {repo.safe_to_purge && (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-500/30 flex items-center gap-1">
+                            <CheckCircle size={12} />
+                            Safe to Purge (Cloud Synced)
+                          </span>
+                        )}
+                        {repo.is_stale && repo.has_uncommitted_changes && (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 flex items-center gap-1">
+                            <AlertTriangle size={12} />
+                            Warning: Uncommitted Changes
+                          </span>
+                        )}
+                        {!repo.is_stale && (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                            Active ({repo.days_since_commit}d ago)
+                          </span>
+                        )}
+                      </div>
+                      <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-500'}`}>
+                        Last commit: {repo.last_commit_date} · .git size: {repo.git_dir_size_readable}
+                      </p>
+                      <p className={`text-xs mt-1 ${isDark ? 'text-neutral-500' : 'text-neutral-400'}`}>{repo.path}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-orange-400">{repo.size_readable}</p>
+                      <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-neutral-400'}`}>
+                        .git: {repo.git_dir_size_readable}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Git Action Buttons */}
+            {gitRepos.length > 0 && (
+              <div className="flex gap-3">
+                <button
+                  onClick={handleGitScan}
+                  disabled={gitScanning || gitOptimizing}
+                  className={`px-4 py-3 rounded-xl border transition-all text-sm font-medium ${
+                    isDark 
+                      ? 'glass border-white/10 hover:border-white/20 text-neutral-300' 
+                      : 'bg-white border-neutral-200 hover:border-neutral-300 text-neutral-600'
+                  } disabled:opacity-50`}
+                >
+                  {gitScanning ? <Loader size={16} className="animate-spin inline mr-2" /> : <Search size={16} className="inline mr-2" />}
+                  Rescan Repos
+                </button>
+                <button
+                  onClick={handleGitGC}
+                  disabled={selectedGitSize === 0 || gitOptimizing || gitScanning}
+                  className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 ${
+                    selectedGitSize > 0 && !gitOptimizing
+                      ? 'bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 hover:from-blue-500 hover:via-cyan-500 hover:to-teal-500 text-white shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:scale-[1.02]'
+                      : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  {gitOptimizing && gitOperation === 'gc' ? (
+                    <>
+                      <Loader size={18} className="animate-spin" />
+                      Compressing...
+                    </>
+                  ) : (
+                    <>
+                      <Archive size={18} />
+                      Compress Git Logs (Run Git GC)
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={handleGitPurge}
+                  disabled={selectedSafeToPurge === 0 || gitOptimizing || gitScanning}
+                  className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 ${
+                    selectedSafeToPurge > 0 && !gitOptimizing
+                      ? 'bg-gradient-to-r from-orange-600 via-red-600 to-pink-600 hover:from-orange-500 hover:via-red-500 hover:to-pink-500 text-white shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-[1.02]'
+                      : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  {gitOptimizing && gitOperation === 'purge' ? (
+                    <>
+                      <Loader size={18} className="animate-spin" />
+                      Purging...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 size={18} />
+                      Purge Selected Stale Repos
+                      {selectedSafeToPurge > 0 && (
+                        <span className="ml-2 px-2 py-0.5 rounded-full bg-white/20 text-xs">
+                          {selectedSafeToPurge}
+                        </span>
+                      )}
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
 

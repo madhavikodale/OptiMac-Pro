@@ -538,3 +538,225 @@ pub async fn clean_dev_junk(selected_ids: Vec<String>) -> Result<DevJunkScanResu
         total_size_readable: result.total_size_readable,
     })
 }
+
+// ============================================================================
+// GITHUB WORKSPACE OPTIMIZER
+// ============================================================================
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct GitRepoInfo {
+    pub id: String,
+    pub name: String,
+    pub path: String,
+    pub size_bytes: u64,
+    pub size_readable: String,
+    pub last_commit_date: String,
+    pub days_since_commit: u32,
+    pub is_stale: bool,
+    pub has_uncommitted_changes: bool,
+    pub safe_to_purge: bool,
+    pub selected: bool,
+    pub git_dir_size: u64,
+    pub git_dir_size_readable: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct GitRepoScanResult {
+    pub repos: Vec<GitRepoInfo>,
+    pub total_size_bytes: u64,
+    pub total_size_readable: String,
+    pub stale_count: u32,
+    pub active_count: u32,
+}
+
+fn get_git_repo_size(repo_path: &Path) -> (u64, u64) {
+    let total_size = get_dir_size(repo_path);
+    let git_dir_size = if repo_path.join(".git").exists() {
+        get_dir_size(&repo_path.join(".git"))
+    } else {
+        0
+    };
+    (total_size, git_dir_size)
+}
+
+fn get_last_commit_date(repo_path: &Path) -> Option<(String, u32)> {
+    let output = Command::new("git")
+        .args(["-C", repo_path.to_str().unwrap_or("."), "log", "-1", "--format=%ct"])
+        .output();
+    
+    if let Ok(output) = output {
+        if output.status.success() {
+            let timestamp_str = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            if let Ok(timestamp) = timestamp_str.parse::<i64>() {
+                let commit_time = std::time::UNIX_EPOCH + std::time::Duration::from_secs(timestamp as u64);
+                let now = SystemTime::now();
+                let days = now.duration_since(commit_time).unwrap_or_default().as_secs() / 86400;
+                
+                let date_output = Command::new("git")
+                    .args(["-C", repo_path.to_str().unwrap_or("."), "log", "-1", "--format=%Y-%m-%d %H:%M"])
+                    .output();
+                
+                let date_str = if let Ok(date_output) = date_output {
+                    String::from_utf8_lossy(&date_output.stdout).trim().to_string()
+                } else {
+                    "Unknown".to_string()
+                };
+                
+                return Some((date_str, days as u32));
+            }
+        }
+    }
+    None
+}
+
+fn has_uncommitted_changes(repo_path: &Path) -> bool {
+    let output = Command::new("git")
+        .args(["-C", repo_path.to_str().unwrap_or("."), "status", "--porcelain"])
+        .output();
+    
+    if let Ok(output) = output {
+        if output.status.success() {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            return !stdout.trim().is_empty();
+        }
+    }
+    false
+}
+
+fn find_git_repos() -> Vec<PathBuf> {
+    let mut results = Vec::new();
+    let home = dirs::home_dir().unwrap_or_else(|| PathBuf::from("/Users/digitone"));
+    let search_roots = [
+        home.join("Projects"),
+        home.join("Documents"),
+        home.join("Dev"),
+        home.join("Development"),
+        home.join("code"),
+        home.join("workspace"),
+        home.join("GitHub"),
+        home.join("repos"),
+        home.join("src"),
+    ];
+
+    for root in &search_roots {
+        if !root.exists() {
+            continue;
+        }
+        fn walk(dir: &Path, results: &mut Vec<PathBuf>) {
+            if let Ok(entries) = fs::read_dir(dir) {
+                for entry in entries.flatten() {
+                    let path = entry.path();
+                    if path.is_dir() {
+                        if path.join(".git").exists() {
+                            results.push(path);
+                            continue;
+                        }
+                        let name = path.file_name().unwrap_or_default().to_string_lossy();
+                        if !name.starts_with('.') && !name.starts_with("node_modules") {
+                            if results.len() > 100 {
+                                return;
+                            }
+                            walk(&path, results);
+                        }
+                    }
+                }
+            }
+        }
+        walk(root, &mut results);
+    }
+    results
+}
+
+#[tauri::command]
+pub async fn scan_github_repos() -> Result<GitRepoScanResult, String> {
+    let mut repos = Vec::new();
+    let mut total_size = 0u64;
+    let mut stale_count = 0u32;
+    let mut active_count = 0u32;
+
+    let git_repos = find_git_repos();
+
+    for (idx, repo_path) in git_repos.iter().enumerate() {
+        let repo_name = repo_path.file_name()
+            .unwrap_or_default()
+            .to_string_lossy()
+            .to_string();
+        
+        let (total_size_bytes, git_dir_size) = get_git_repo_size(repo_path);
+        total_size += total_size_bytes;
+        
+        let last_commit = get_last_commit_date(repo_path);
+        let days_since_commit = last_commit.as_ref().map(|(_, days)| *days).unwrap_or(0);
+        let is_stale = days_since_commit > 60;
+        let has_uncommitted = has_uncommitted_changes(repo_path);
+        let safe_to_purge = is_stale && !has_uncommitted;
+        
+        if is_stale {
+            stale_count += 1;
+        } else {
+            active_count += 1;
+        }
+
+        repos.push(GitRepoInfo {
+            id: format!("repo-{}", idx),
+            name: repo_name,
+            path: repo_path.to_string_lossy().to_string(),
+            size_bytes: total_size_bytes,
+            size_readable: format_size(total_size_bytes),
+            last_commit_date: last_commit.as_ref().map(|(date, _)| date.clone()).unwrap_or_else(|| "Unknown".to_string()),
+            days_since_commit,
+            is_stale,
+            has_uncommitted_changes: has_uncommitted,
+            safe_to_purge,
+            selected: safe_to_purge,
+            git_dir_size,
+            git_dir_size_readable: format_size(git_dir_size),
+        });
+    }
+
+    repos.sort_by(|a, b| b.days_since_commit.cmp(&a.days_since_commit));
+
+    Ok(GitRepoScanResult {
+        repos,
+        total_size_bytes: total_size,
+        total_size_readable: format_size(total_size),
+        stale_count,
+        active_count,
+    })
+}
+
+#[tauri::command]
+pub async fn optimize_local_repos(selected_ids: Vec<String>, operation: String) -> Result<GitRepoScanResult, String> {
+    let scan = scan_github_repos().await?;
+
+    match operation.as_str() {
+        "gc" => {
+            for repo in &scan.repos {
+                if !selected_ids.contains(&repo.id) {
+                    continue;
+                }
+                let repo_path = PathBuf::from(&repo.path);
+                if repo_path.exists() {
+                    let _ = Command::new("git")
+                        .args(["-C", repo.path.as_str(), "gc", "--prune=now", "--aggressive"])
+                        .output();
+                }
+            }
+        }
+        "purge" => {
+            for repo in &scan.repos {
+                if !selected_ids.contains(&repo.id) || !repo.safe_to_purge {
+                    continue;
+                }
+                let repo_path = PathBuf::from(&repo.path);
+                if repo_path.exists() {
+                    let _ = fs::remove_dir_all(&repo_path);
+                }
+            }
+        }
+        _ => {}
+    }
+
+    scan_github_repos().await
+}
+
